@@ -16,7 +16,7 @@ intents.message_content = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-@bot.command
+@bot.command(name='marco')
 async def marco(ctx):
     await ctx.send("polo")
 
