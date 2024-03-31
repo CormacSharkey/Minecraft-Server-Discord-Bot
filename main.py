@@ -20,6 +20,21 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 async def marco(ctx):
     await ctx.send("polo")
 
+@bot.event
+async def on_message(message):
+    if message.author.bot:
+        return
+    elif message.content == "Hello":
+        print(message.author.name)
+        await message.channel.send("Hello there " + message.author.name + "!")
+
+@bot.event
+async def on_ready():
+    print("Logged in as")
+    print(bot.user.name)
+    print(bot.user.id)
+    print(bot.guilds[0].name)
+    print("----------")
 
 bot.run(TOKEN)
 
