@@ -1,12 +1,16 @@
 import os
 
-from selenium import webdriver  
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
 
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 
-driver = webdriver.Chrome()
+chop = webdriver.ChromeOptions()
+chop.add_extension('CJPALHDLNBPAFIAMEJDNHCPHJBKEIAGM_1_57_0_0.crx')
+driver = webdriver.Chrome(options = chop)
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -27,6 +31,8 @@ async def marco(ctx):
 @bot.command(name='website')
 async def website(ctx):
     driver.get('https://www.minecraftcraftingguide.net/')
+    driver.implicitly_wait(2)
+    # popUp = driver.find_element(By.XPATH, "/html/body/div[2]/div[2]/div[1]/div[2]/div[2]/button[1]").click()
     await ctx.send("Website open!")
 
 @bot.event
