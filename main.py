@@ -27,6 +27,7 @@ async def on_message(message):
     elif message.content == "Hello":
         print(message.author.name)
         await message.channel.send("Hello there " + message.author.name + "!")
+    await bot.process_commands(message)
 
 @bot.event
 async def on_ready():
