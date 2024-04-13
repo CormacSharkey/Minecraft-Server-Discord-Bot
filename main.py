@@ -1,8 +1,12 @@
 import os
 
+from selenium import webdriver  
+
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
+
+driver = webdriver.Chrome()
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -19,6 +23,11 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 @bot.command(name='marco')
 async def marco(ctx):
     await ctx.send("polo")
+
+@bot.command(name='website')
+async def website(ctx):
+    driver.get('https://www.minecraftcraftingguide.net/')
+    await ctx.send("Website open!")
 
 @bot.event
 async def on_message(message):
