@@ -78,6 +78,16 @@ async def website(ctx, arg):
     except:
         await ctx.send("Womp womp spell better")
 
+@bot.command(name="jingle")
+async def jingle(ctx):
+    # Gets voice channel of message author
+    voice_channel = ctx.author.voice.channel
+    if (voice_channel):
+        vc = await voice_channel.connect()
+        vc.play(discord.FFmpegPCMAudio(executable="C:/FFMPEG/bin/ffmpeg.exe", source="Audios/jingle.m4a"))
+    else:
+        await ctx.send(str(ctx.author.name) + "is not in a channel.")
+
 @bot.event
 async def on_message(message):
     if message.author.bot:
