@@ -37,7 +37,7 @@ async def website(ctx, arg):
     # Open the Minecraft Crafting Guide website
     driver.get('https://www.minecraftcraftingguide.net/')
     # Wait for 2 seconds to load it
-    driver.implicitly_wait(0.5)
+    driver.implicitly_wait(0.1)
     # Dealing with a cookie consent popup (not needed with uBlock Origin)
     # popUp = driver.find_element(By.XPATH, "/html/body/div[2]/div[2]/div[1]/div[2]/div[2]/button[1]").click()
 
@@ -50,11 +50,13 @@ async def website(ctx, arg):
     # Click the search button
     searchButton.click()
 
+    # Change the webpage height and width to max
     height = driver.execute_script('return document.documentElement.scrollHeight')
     width  = driver.execute_script('return document.documentElement.scrollWidth')
     driver.set_window_size(width, height)  # the trick
-    time.sleep(0.5)
+    time.sleep(0.1)
 
+    # Exception Handling - to catch when the search argument isn't valid or no search results
     try:
         # Find the search results
         searchResults = driver.find_element(By.XPATH, "/html/body/div/div/div/div/div/div[1]/div[2]/table/tbody")
