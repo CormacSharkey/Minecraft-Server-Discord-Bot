@@ -48,6 +48,7 @@ intents.typing = False
 intents.presences = False
 intents.messages = True
 intents.message_content = True
+intents.voice_states = True
 
 # Specify the bot's command prefix and intents
 bot = commands.Bot(command_prefix='!', intents=intents)
@@ -56,6 +57,8 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 @bot.command(name='marco')
 async def marco(ctx):
     await ctx.send("polo")
+
+    
 
 # Bot Command - when user sends "!search [arg]", the bot searches a MC wiki for the arg value as a recipe
 # Returns an image of the recipe(s) or an error message for spelling
@@ -105,17 +108,45 @@ async def website(ctx, arg):
     except:
         await ctx.send("Womp womp spell better")
 
+
+
+
 # Bot Command - when user sends "!connect", the bot will connect to the same voice chat as the user
 # Returns an error message if the user is not in a voice chat
-# @bot.command(name="connect")
-# async def connect(ctx):
-#     # Gets voice channel of message author
-#     voice_channel = ctx.author.voice.channel
-#     # Connect to voice chat if author is in one
-#     if (voice_channel):
-#         vc = await voice_channel.connect()
-#     else:
-#         await ctx.send(str(ctx.author.name) + "is not in a channel.")
+@bot.command(name="connect")
+async def connect(ctx):
+    # Gets voice channel of message author
+    voice_channel = ctx.author.voice.channel
+    # Connect to voice chat if author is in one
+    if (voice_channel):
+        vc = await voice_channel.connect()
+    else:
+        await ctx.send(str(ctx.author.name) + "is not in a channel.")
+
+# Bot Command - when user sends "!disconnect", the bot will disconnect from its voice channel
+@bot.command(name="disconnect")
+async def disconnect(ctx):
+    # Disconnect the bot from the voice channel its in
+    await ctx.voice_client.disconnect()
+
+@bot.event
+async def on_voice_state_update(member, before, after):
+    if (before.channel):
+        if bot.user in before.channel.members and len([m for m in before.channel.members if not m.bot]) == 0:
+            channel = discord.utils.get(bot.voice_clients, channel=before.channel)
+            await channel.disconnect()
+    # ctx = await bot.get_context(before)
+
+    # def check_VC():
+    #     voice = set()
+    #     for v in ctx.guild.voice_channels:
+    #         for member in v.members:
+    #             voice.add(member.id)
+    #     return len(voice) == 0
+    
+    # if (check_VC()):
+    #     await ctx.voice_client.disconnect()
+
 
 # Bot Command - when user sends "!jingle", the bot will connect to the user's voice chat and play "Aww Creeper!" audio
 # Returns an error message if the user is not in a voice chat
