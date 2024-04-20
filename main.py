@@ -2,6 +2,7 @@ import os
 import time
 
 import yt_dlp
+from youtube_search import YoutubeSearch
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -12,8 +13,6 @@ from discord.ext import commands
 from dotenv import load_dotenv
 
 # Youtube Searching Mock Code
-# from youtube_search import YoutubeSearch
-
 # results = YoutubeSearch('a-ha', max_results=10).to_dict()
 # for i in range(0, len(results)):
 #     print(results[i].get("title") + "\t")
@@ -25,11 +24,18 @@ from dotenv import load_dotenv
 
 
 FILE_LOCATION = "C:/Users/corma/Desktop/Code/Python/Repos/Minecraft-Server-Discord-Bot/Audios/"
+MAX_RESULTS = 8
+RESULTS_LINKS = []
 
 def download_audio(link):
+    os.remove("Audios/jangle.mp3")
     with yt_dlp.YoutubeDL({'extract_audio': True, 'format': 'bestaudio', 'outtmpl': FILE_LOCATION+'jangle.mp3'}) as video:
         video.download(link)    
         print("Successfully Downloaded Link " + link)
+
+def yt_search(query):
+    results = YoutubeSearch(query, max_results=MAX_RESULTS).to_dict()
+    return results
 
 
 # Add uBlock Origin to the Chrome Driver
@@ -58,12 +64,12 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 async def marco(ctx):
     await ctx.send("polo")
 
-    
+
 
 # Bot Command - when user sends "!search [arg]", the bot searches a MC wiki for the arg value as a recipe
 # Returns an image of the recipe(s) or an error message for spelling
 @bot.command(name='search')
-async def website(ctx, arg):
+async def website(ctx, *, arg):
     # Open the Minecraft Crafting Guide website
     driver.get('https://www.minecraftcraftingguide.net/')
     # Wait for 0.1 seconds to load it
@@ -148,19 +154,20 @@ async def on_voice_state_update(member, before, after):
     #     await ctx.voice_client.disconnect()
 
 
+
 # Bot Command - when user sends "!jingle", the bot will connect to the user's voice chat and play "Aww Creeper!" audio
 # Returns an error message if the user is not in a voice chat
-@bot.command(name="jingle")
-async def jingle(ctx):
-    # Gets voice channel of message author
-    voice_channel = ctx.author.voice.channel
-    if (voice_channel):
-        vc = await voice_channel.connect()
-        # ctx.guild.voice_client.play(discord.FFmpegPCMAudio(executable="C:/FFMPEG/bin/ffmpeg.exe", source="Audios/jingle.m4a"))
-        vc.play(discord.FFmpegPCMAudio(executable="C:/FFMPEG/bin/ffmpeg.exe", source="Audios/jingle.m4a"))
-        ctx.voice_client.disconnect()
-    else:
-        await ctx.send(str(ctx.author.name) + "is not in a channel.")
+# @bot.command(name="jingle")
+# async def jingle(ctx):
+#     # Gets voice channel of message author
+#     voice_channel = ctx.author.voice.channel
+#     if (voice_channel):
+#         vc = await voice_channel.connect()
+#         # ctx.guild.voice_client.play(discord.FFmpegPCMAudio(executable="C:/FFMPEG/bin/ffmpeg.exe", source="Audios/jingle.m4a"))
+#         vc.play(discord.FFmpegPCMAudio(executable="C:/FFMPEG/bin/ffmpeg.exe", source="Audios/jingle.m4a"))
+#         ctx.voice_client.disconnect()
+#     else:
+#         await ctx.send(str(ctx.author.name) + "is not in a channel.")
 
 # Bot Command - when user sends "!play [arg]", the bot downloads the audio of the provided arg Youtube video, joins voice chat and plays it
 @bot.command(name="play")
@@ -170,11 +177,19 @@ async def play(ctx, arg):
     # Gets voice channel of message author
     voice_channel = ctx.author.voice.channel
     if (voice_channel):
-        vc = await voice_channel.connect()
-        vc.play(discord.FFmpegPCMAudio(executable="C:/FFMPEG/bin/ffmpeg.exe", source="Audios/jangle.mp3"))
-        ctx.voice_client.disconnect()
+        # vc = await voice_channel.connect()
+        ctx.guild.voice_client.play(discord.FFmpegPCMAudio(executable="C:/FFMPEG/bin/ffmpeg.exe", source="Audios/jangle.mp3"))
+        # ctx.voice_client.disconnect()
     else:
         await ctx.send(str(ctx.author.name) + "is not in a channel.")
+
+@bot.command(name="searchYT")
+async def searchYT(ctx, *, arg):
+    results = yt_search(arg)
+    for i in range(0, len(results)):
+        await ctx.send(results[i].get("title") + "\t" + "https://www.youtube.com/" + results[i].get("url_suffix"))
+
+
 
 # Bot Event - when the user sends "Hello", the bot sends back "Hello there user!", where "user" is the user's name
 @bot.event
