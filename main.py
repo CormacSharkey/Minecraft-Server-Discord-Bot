@@ -23,7 +23,8 @@ from dotenv import load_dotenv
 
 
 
-FILE_LOCATION = "C:/Users/corma/Desktop/Code/Python/Repos/Minecraft-Server-Discord-Bot/Audios/"
+#Made the path relative
+FILE_LOCATION = "Audios/"
 MAX_RESULTS = 8
 RESULTS_LINKS = []
 
@@ -219,3 +220,6 @@ bot.run(TOKEN)
 #     print(f'{client.user} has connected to Discord!')
 
 # client.run(TOKEN)
+
+
+download_audio("https://www.youtube.com/watch?v=mP7sHrJGEKs")
