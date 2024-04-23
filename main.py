@@ -237,7 +237,7 @@ async def dequeue(ctx, *args):
     else:
         #Loop over all the indicies provided and pop them from the queue
         for i in args:
-            if i.isnumeric() and int(i) > 0 and int(i) < len(AUDIO_QUEUE):
+            if i.isnumeric() and int(i) >= 0 and int(i) < len(AUDIO_QUEUE):
                 song = AUDIO_QUEUE.pop(int(i))
                 os.remove(song)
         
