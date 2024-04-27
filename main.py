@@ -1,5 +1,6 @@
 import os
 import time
+import asyncio
 
 import yt_dlp
 from youtube_search import YoutubeSearch
@@ -21,15 +22,19 @@ from dotenv import load_dotenv
 
 # print(results[0].get("title"))
 
+global QUEUE
+global RESULTS_LINKS
 
 
 FILE_LOCATION = "C:/Users/corma/Desktop/Code/Python/Repos/Minecraft-Server-Discord-Bot/Audios/"
-MAX_RESULTS = 8
+MAX_RESULTS = 5
 RESULTS_LINKS = []
+QUEUE = []
 
 def download_audio(link):
-    os.remove("Audios/jangle.mp3")
-    with yt_dlp.YoutubeDL({'extract_audio': True, 'format': 'bestaudio', 'outtmpl': FILE_LOCATION+'jangle.mp3'}) as video:
+    if os.path.exists("Audios/song.mp3"):
+        os.remove("Audios/song.mp3")
+    with yt_dlp.YoutubeDL({'extract_audio': True, 'format': 'bestaudio', 'outtmpl': FILE_LOCATION+'song.mp3'}) as video:
         video.download(link)    
         print("Successfully Downloaded Link " + link)
 
@@ -178,17 +183,58 @@ async def play(ctx, arg):
     voice_channel = ctx.author.voice.channel
     if (voice_channel):
         # vc = await voice_channel.connect()
-        ctx.guild.voice_client.play(discord.FFmpegPCMAudio(executable="C:/FFMPEG/bin/ffmpeg.exe", source="Audios/jangle.mp3"))
+        ctx.guild.voice_client.play(discord.FFmpegPCMAudio(executable="C:/FFMPEG/bin/ffmpeg.exe", source="Audios/song.mp3"))
         # ctx.voice_client.disconnect()
     else:
         await ctx.send(str(ctx.author.name) + "is not in a channel.")
 
+# TODO - change it so that the message sends with all the data together after it is stored
 @bot.command(name="searchYT")
 async def searchYT(ctx, *, arg):
+    global RESULTS_LINKS
+    RESULTS_LINKS.clear()
     results = yt_search(arg)
     for i in range(0, len(results)):
-        await ctx.send(results[i].get("title") + "\t" + "https://www.youtube.com/" + results[i].get("url_suffix"))
+        RESULTS_LINKS.append([results[i].get("title"), "https://www.youtube.com/" + results[i].get("url_suffix")])
+        await ctx.send(str(i+1) + ". " + results[i].get("title"))
 
+@bot.command(name="Q")
+async def Q(ctx, arg):
+    global QUEUE
+    global RESULTS_LINKS
+    QUEUE.append(RESULTS_LINKS[int(arg)-1])
+    await ctx.send("Queueing " + RESULTS_LINKS[int(arg)-1][0] + ".....")
+
+@bot.command(name="DQ")
+async def DQ(ctx):
+    global QUEUE
+    QUEUE.pop(1)
+
+@bot.command(name="showQ")
+async def showQ(ctx):
+    global QUEUE
+    for i in range(0, len(QUEUE)):
+        await ctx.send(QUEUE[i][0])
+        print(QUEUE[i][0])
+
+@bot.command(name="playQ")
+async def playQ(ctx):
+    global QUEUE
+    while len(QUEUE) > 0:
+        download_audio(QUEUE[0][1])
+
+        while (ctx.voice_client.is_playing()):
+                await asyncio.sleep(1)
+                print("Playing")
+
+        # Gets voice channel of message author
+        voice_channel = ctx.author.voice.channel
+        if (voice_channel):
+            ctx.guild.voice_client.play(discord.FFmpegPCMAudio(executable="C:/FFMPEG/bin/ffmpeg.exe", source="Audios/song.mp3"))
+        else:
+            await ctx.send(str(ctx.author.name) + "is not in a channel.")
+        await ctx.send("Playing '" + QUEUE[0][0] + "'.....")
+        QUEUE.pop(0)
 
 
 # Bot Event - when the user sends "Hello", the bot sends back "Hello there user!", where "user" is the user's name
