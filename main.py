@@ -18,24 +18,38 @@ from dotenv import load_dotenv
 # for i in range(0, len(results)):
 #     print(results[i].get("title") + "\t")
 #     print("https://www.youtube.com/" + results[i].get("url_suffix"))
-    
-
 # print(results[0].get("title"))
+
 
 global QUEUE
 global RESULTS_LINKS
+global CURRENT_SONG
 
+global SONG_COUNT
 
 FILE_LOCATION = "C:/Users/corma/Desktop/Code/Python/Repos/Minecraft-Server-Discord-Bot/Audios/"
 MAX_RESULTS = 5
+
+# Buffer for results
 RESULTS_LINKS = []
+# Queue
 QUEUE = []
 
+CURRENT_SONG = 0
+SONG_COUNT = 0
+
 def download_audio(link):
+    global SONG_COUNT
+    with yt_dlp.YoutubeDL({'extract_audio': True, 'format': 'bestaudio', 'outtmpl': FILE_LOCATION+'song' + str(SONG_COUNT) + '.mp3'}) as audio:
+        audio.download(link)    
+        print("Successfully Downloaded Link " + link)
+        SONG_COUNT += 1
+
+def download_audio_url(link):
     if os.path.exists("Audios/song.mp3"):
         os.remove("Audios/song.mp3")
-    with yt_dlp.YoutubeDL({'extract_audio': True, 'format': 'bestaudio', 'outtmpl': FILE_LOCATION+'song.mp3'}) as video:
-        video.download(link)    
+    with yt_dlp.YoutubeDL({'extract_audio': True, 'format': 'bestaudio', 'outtmpl': FILE_LOCATION+'url.mp3'}) as audio:
+        audio.download(link)    
         print("Successfully Downloaded Link " + link)
 
 def yt_search(query):
@@ -177,13 +191,13 @@ async def on_voice_state_update(member, before, after):
 # Bot Command - when user sends "!play [arg]", the bot downloads the audio of the provided arg Youtube video, joins voice chat and plays it
 @bot.command(name="play")
 async def play(ctx, arg):
-    download_audio(arg)
+    download_audio_url(arg)
 
     # Gets voice channel of message author
     voice_channel = ctx.author.voice.channel
     if (voice_channel):
         # vc = await voice_channel.connect()
-        ctx.guild.voice_client.play(discord.FFmpegPCMAudio(executable="C:/FFMPEG/bin/ffmpeg.exe", source="Audios/song.mp3"))
+        ctx.guild.voice_client.play(discord.FFmpegPCMAudio(executable="C:/FFMPEG/bin/ffmpeg.exe", source="Audios/url.mp3"))
         # ctx.voice_client.disconnect()
     else:
         await ctx.send(str(ctx.author.name) + "is not in a channel.")
@@ -196,19 +210,31 @@ async def searchYT(ctx, *, arg):
     results = yt_search(arg)
     for i in range(0, len(results)):
         RESULTS_LINKS.append([results[i].get("title"), "https://www.youtube.com/" + results[i].get("url_suffix")])
+    for i in range(0, len(results)):
         await ctx.send(str(i+1) + ". " + results[i].get("title"))
 
 @bot.command(name="Q")
 async def Q(ctx, arg):
     global QUEUE
     global RESULTS_LINKS
-    QUEUE.append(RESULTS_LINKS[int(arg)-1])
-    await ctx.send("Queueing " + RESULTS_LINKS[int(arg)-1][0] + ".....")
+    global SONG_COUNT
+
+    await ctx.send("Queueing '" + RESULTS_LINKS[int(arg)-1][0] + "'")
+
+    download_audio(RESULTS_LINKS[int(arg)-1][1])
+    QUEUE.append([RESULTS_LINKS[int(arg)-1][0], "song" + str(SONG_COUNT-1) + ".mp3"])
 
 @bot.command(name="DQ")
 async def DQ(ctx):
     global QUEUE
-    QUEUE.pop(1)
+    if os.path.exists("Audios/" + str(QUEUE[0][1])):
+        os.remove("Audios/" + str(QUEUE[0][1]))
+    QUEUE.pop(0)
+
+@bot.command(name="playing")
+async def playing(ctx):
+    global CURRENT_SONG
+    await ctx.send("Currently playing '" + CURRENT_SONG + "'")
 
 @bot.command(name="showQ")
 async def showQ(ctx):
@@ -219,22 +245,31 @@ async def showQ(ctx):
 
 @bot.command(name="playQ")
 async def playQ(ctx):
+    currFile = ""
     global QUEUE
+    global CURRENT_SONG
+
     while len(QUEUE) > 0:
-        download_audio(QUEUE[0][1])
-
-        while (ctx.voice_client.is_playing()):
-                await asyncio.sleep(1)
-                print("Playing")
-
         # Gets voice channel of message author
         voice_channel = ctx.author.voice.channel
         if (voice_channel):
-            ctx.guild.voice_client.play(discord.FFmpegPCMAudio(executable="C:/FFMPEG/bin/ffmpeg.exe", source="Audios/song.mp3"))
+            ctx.guild.voice_client.play(discord.FFmpegPCMAudio(executable="C:/FFMPEG/bin/ffmpeg.exe", source="Audios/" + QUEUE[0][1]))
+            CURRENT_SONG = QUEUE[0][0]
         else:
             await ctx.send(str(ctx.author.name) + "is not in a channel.")
-        await ctx.send("Playing '" + QUEUE[0][0] + "'.....")
+
+        await ctx.send("Playing '" + QUEUE[0][0] + "'")
+
+        currFile = QUEUE[0][1]
         QUEUE.pop(0)
+
+        while (ctx.voice_client.is_playing()):
+            await asyncio.sleep(1)
+
+        if os.path.exists("Audios/" + currFile):
+            os.remove("Audios/" + currFile)
+    
+    await ctx.send("Queue empty!")
 
 
 # Bot Event - when the user sends "Hello", the bot sends back "Hello there user!", where "user" is the user's name
@@ -256,12 +291,4 @@ async def on_ready():
     print(bot.guilds[0].name)
     print("----------")
 
-bot.run(TOKEN)     
-
-# client = discord.Client(intents=intents)
-
-# @client.event
-# async def on_ready():
-#     print(f'{client.user} has connected to Discord!')
-
-# client.run(TOKEN)
+bot.run(TOKEN)
