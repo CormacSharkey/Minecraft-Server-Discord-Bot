@@ -202,8 +202,7 @@ async def queue(ctx, arg):
     #TODO: Use REGEX to santize input before we append
 
     with yt_dlp.YoutubeDL({'format':'bestaudio'}) as downloader:
-        songinfo = downloader.extract_info(RESULTS_LINKS[int(arg)-1][1])
-    print(songinfo["url"])
+        songinfo = downloader.extract_info(RESULTS_LINKS[int(arg)-1][1], download=False)
     QUEUE.append(songinfo["url"])
 
 @bot.command(name="dequeue")
