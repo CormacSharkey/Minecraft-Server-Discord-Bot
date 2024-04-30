@@ -1,5 +1,6 @@
 import os
 import time
+import asyncio
 
 import yt_dlp
 from youtube_search import YoutubeSearch
@@ -21,13 +22,15 @@ from dotenv import load_dotenv
 
 # print(results[0].get("title"))
 
-
+global QUEUE, RESULTS_LINKS, CURRENT_SONG, SONG_COUNT
 
 #Made the path relative
 FILE_LOCATION = "Audios/"
-MAX_RESULTS = 8
+MAX_RESULTS = 5
 RESULTS_LINKS = []
-AUDIO_QUEUE = []
+QUEUE = []
+CURRENT_SONG = 0
+SONG_COUNT = 0
 
 
 # Add uBlock Origin to the Chrome Driver
@@ -53,7 +56,6 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 
 #? Perhaps replace this with __download_audio to indicate that it is an internal function? Moreso just to stick with
 #?  python library conventions.
-#TODO[1]: Very slow downloads when providing youtu.be links from phone... could be trinity wifi tho... 
 def download_audio(link):
     #This will download the video and title it with the video title.
     #Reason being that we can push the title to AUDIO_QUEUE and then it can serve as the path name when playing  it in
@@ -76,6 +78,8 @@ def download_audio(link):
     with yt_dlp.YoutubeDL(yt_dlp_options) as video:
         video.download(link)    
         print("Successfully Downloaded Link " + link)
+
+
 
 #? Similar idea to the suggestion for download_audio
 def yt_search(query):
@@ -203,20 +207,27 @@ async def play(ctx, arg):
             executable = "C:/FFMPEG/bin/ffmpeg.exe"
 
         #See if there is anything to play
-        if not len(AUDIO_QUEUE):
-            ctx.send("There is nothing in the queue. Add to the queue using !queue")
+        #if not len(AUDIO_QUEUE):
+        #    ctx.send("There is nothing in the queue. Add to the queue using !queue")
         
         #Play until there is nothing in the queue
-        while len(AUDIO_QUEUE):
+        #while len(AUDIO_QUEUE):
             #TODO[1]: Assuming .play is blocking (which I hope to God it is), delete the file.
             #TODO[2]: Test the blocking assumption. Also please please set a breakpoint on the os.remove function.... I
             #TODO:      do not want to brick your pc lol. Like 99% sure it won't... but I am writing this code at 3:30am
             #TODO:      so anything is possible really. 
             # vc = await voice_channel.connect()
-            source = AUDIO_QUEUE.pop(0)
-            ctx.guild.voice_client.play(discord.FFmpegPCMAudio(executable=executable, source=source))
-            os.remove(source)
-            # ctx.voice_client.disconnect()
+            
+        ffmpeg_options = {'options': '-vn'}
+        ydl_opts = {'format': 'bestaudio'}
+                    
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            song_info = ydl.extract_info(arg, download=False)
+        
+        source = AUDIO_QUEUE.pop(0)
+        ctx.guild.voice_client.play(discord.FFmpegPCMAudio(executable=executable, source=song_info["url"], **ffmpeg_options))
+        #os.remove(source)
+        # ctx.voice_client.disconnect()
     else:
         await ctx.send(str(ctx.author.name) + "is not in a channel.")
 
