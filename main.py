@@ -20,17 +20,14 @@ from dotenv import load_dotenv
 #     print("https://www.youtube.com/" + results[i].get("url_suffix"))
 # print(results[0].get("title"))
 
-global QUEUE, RESULTS_LINKS, CURRENT_SONG, SONG_COUNT
+global QUEUE, RESULTS_LINKS
 
 #Made the path relative
 FILE_LOCATION = "Audios/"
 MAX_RESULTS = 5
 
+QUEUE = []
 RESULTS_LINKS = []
-def yt_search(query):
-    results = YoutubeSearch(query, max_results=MAX_RESULTS).to_dict()
-    return results
-
 
 # Add uBlock Origin to the Chrome Driver
 chop = webdriver.ChromeOptions()
@@ -182,18 +179,32 @@ async def play(ctx, arg=None):
     else:
         await ctx.send(str(ctx.author.name) + "is not in a channel.")
 
+
+def yt_search(query):
+    results = YoutubeSearch(query, max_results=MAX_RESULTS).to_dict()
+    return results
+
 @bot.command(name="searchYT")
 async def searchYT(ctx, *, arg):
     global RESULTS_LINKS
     RESULTS_LINKS.clear()
     results = yt_search(arg)
+    
     for i in range(0, len(results)):
-        await ctx.send(results[i].get("title") + "\t" + "https://www.youtube.com/" + results[i].get("url_suffix"))
+        RESULTS_LINKS.append([results[i].get("title"), "https://www.youtube.com" + results[i].get("url_suffix")])
+    
+    for i in range(0, len(results)):
+        await ctx.send(results[i].get("title") + "\t" + "https://www.youtube.com" + results[i].get("url_suffix"))
+
 
 @bot.command(name="queue")
 async def queue(ctx, arg):
     #TODO: Use REGEX to santize input before we append
-    QUEUE.append(RESULTS_LINKS[int(arg)-1][1])
+
+    with yt_dlp.YoutubeDL({'format':'bestaudio'}) as downloader:
+        songinfo = downloader.extract_info(RESULTS_LINKS[int(arg)-1][1])
+    print(songinfo["url"])
+    QUEUE.append(songinfo["url"])
 
 @bot.command(name="dequeue")
 async def dequeue(ctx, arg):
