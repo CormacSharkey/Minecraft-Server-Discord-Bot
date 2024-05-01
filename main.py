@@ -171,11 +171,15 @@ async def play(ctx, arg=None):
         
         ffmpeg_options = {'options': '-vn'}
         
-        while len(QUEUE) > 0:
-            source = QUEUE.pop(0)
-            ctx.guild.voice_client.play(discord.FFmpegPCMAudio(executable=executable, source=source, **ffmpeg_options))
-            while (ctx.voice_client.is_playing()):
-                await asyncio.sleep(1)
+        try:
+            while len(QUEUE) > 0:
+                source = QUEUE.pop(0)
+                ctx.guild.voice_client.play(discord.FFmpegPCMAudio(executable=executable, source=source, **ffmpeg_options))
+                while (ctx.voice_client.is_playing()):
+                    await asyncio.sleep(1)
+        except:
+            await ctx.send("Womp womp why did you leave?")
+
     else:
         await ctx.send(str(ctx.author.name) + "is not in a channel.")
 
