@@ -281,10 +281,7 @@ async def start(ctx):
 async def status(ctx):
     global DRIVER_SLEEP, DRIVER_MAX_SLEEP, DRIVER_MIN_SLEEP
     chrome_opt = uc.ChromeOptions()
-    chrome_opt.add_argument("--password-store=basic")
-    prefs = {"credentials_enable_service": False,"profile.password_manager_enabled": False}
-    chrome_opt.add_experimental_option("prefs", prefs)
-    driver = uc.Chrome(chrome_options=chrome_opt,headless=False,use_subprocess=True)
+    driver = uc.Chrome(headless=False,use_subprocess=True)
     driver.get('https://aternos.org/go/')
     
     #Sleep to prevent bot detection
