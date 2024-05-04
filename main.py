@@ -1,6 +1,8 @@
 import os
 import time
 import asyncio
+import undetected_chromedriver as uc
+import random
 
 import yt_dlp
 from youtube_search import YoutubeSearch
@@ -20,11 +22,15 @@ from dotenv import load_dotenv
 #     print("https://www.youtube.com/" + results[i].get("url_suffix"))
 # print(results[0].get("title"))
 
-global QUEUE, RESULTS_LINKS
+global QUEUE, RESULTS_LINKS, DRIVER_SLEEP, DRIVER_MIN_SLEEP, DRIVER_MAX_SLEEP
 
 #Made the path relative
 FILE_LOCATION = "Audios/"
 MAX_RESULTS = 5
+
+DRIVER_SLEEP = 5
+DRIVER_MIN_SLEEP = 1
+DRIVER_MAX_SLEEP = 3
 
 QUEUE = []
 RESULTS_LINKS = []
@@ -38,7 +44,8 @@ driver = webdriver.Chrome(options = chop)
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
-
+ATERNOS_USERNAME = os.getenv('ATERNOS_USERNAME')
+ATERNOS_PASSWORD = os.getenv('ATERNOS_PASSWORD')
 # Set the bot's intents
 intents = discord.Intents.default()
 intents.typing = False
@@ -218,6 +225,105 @@ async def dequeue(ctx, arg):
     if arg.isnumeric() and int(arg) >= 1 and int(arg) < len(QUEUE):
         QUEUE.pop(int(arg) - 1)
 
+
+@bot.command(name="start")
+async def start(ctx):
+    global DRIVER_SLEEP, DRIVER_MAX_SLEEP, DRIVER_MIN_SLEEP
+    driver = uc.Chrome(headless=False,use_subprocess=False)
+    driver.get('https://aternos.org/go/')
+    
+    #Sleep to prevent bot detection
+    asyncio.sleep(DRIVER_SLEEP)
+    DRIVER_SLEEP = random.randint(DRIVER_MIN_SLEEP, DRIVER_MAX_SLEEP)
+    
+    #Find the username input box
+    driver.find_element(By.XPATH, '//input[@class="username"]').send_keys(ATERNOS_USERNAME)
+
+    asyncio.sleep(DRIVER_SLEEP)
+    DRIVER_SLEEP = random.randint(DRIVER_MIN_SLEEP, DRIVER_MAX_SLEEP)
+
+    driver.find_element(By.XPATH, '//input[@class="password"]').send_keys(ATERNOS_PASSWORD)
+
+    driver.find_element(By.XPATH, '//button[@title="Login"]').click()
+    
+    try:
+        driver.find_element(By.XPATH, '//button[@class=" css-47sehv"]').click()
+    except:
+        print("No cookies to agree too. Passing...")
+    
+    asyncio.sleep(DRIVER_SLEEP)
+    DRIVER_SLEEP = random.randint(DRIVER_MIN_SLEEP, DRIVER_MAX_SLEEP)
+
+    driver.find_element(By.XPATH, '//div[@class="server-body"]').click()
+
+    asyncio.sleep(DRIVER_SLEEP)
+    DRIVER_SLEEP = random.randint(DRIVER_MIN_SLEEP, DRIVER_MAX_SLEEP)
+
+    if(driver.find_element(By.XPATH, '//span[@class="statuslabel-label"]').text != "Offline"):
+        await ctx.send("The server is already online")
+        return
+
+
+    driver.find_element(By.XPATH, '//div[@id="start"]').click()
+
+    try:
+        driver.find_element(By.XPATH, '//button[@class="btn btn-danger"]').click()
+    except:
+        print("No notifications to accept")
+
+
+    while(driver.find_element(By.XPATH, '//span[@class="statuslabel-label"]').text != "Online"):
+        asyncio.sleep(5)
+
+    await ctx.send("The server is now online")
+
+@bot.command(name="status")
+async def status(ctx):
+    global DRIVER_SLEEP, DRIVER_MAX_SLEEP, DRIVER_MIN_SLEEP
+    chrome_opt = uc.ChromeOptions()
+    driver = uc.Chrome(headless=False,use_subprocess=True)
+    driver.get('https://aternos.org/go/')
+    
+    #Sleep to prevent bot detection
+    await asyncio.sleep(DRIVER_SLEEP)
+    DRIVER_SLEEP = random.randint(DRIVER_MIN_SLEEP, DRIVER_MAX_SLEEP)
+    
+    #Find the username input box
+    driver.find_element(By.XPATH, '//input[@class="username"]').send_keys(ATERNOS_USERNAME)
+
+    # await asyncio.sleep(DRIVER_SLEEP)
+    # DRIVER_SLEEP = random.randint(DRIVER_MIN_SLEEP, DRIVER_MAX_SLEEP)
+
+    driver.find_element(By.XPATH, '//input[@class="password"]').send_keys(ATERNOS_PASSWORD)
+
+    await asyncio.sleep(DRIVER_SLEEP)
+    DRIVER_SLEEP = random.randint(DRIVER_MIN_SLEEP, DRIVER_MAX_SLEEP)
+
+    driver.find_element(By.XPATH, '//button[@title="Login"]').click()
+
+    await asyncio.sleep(DRIVER_SLEEP)
+    DRIVER_SLEEP = random.randint(DRIVER_MIN_SLEEP, DRIVER_MAX_SLEEP)
+    
+    try:
+        driver.find_element(By.XPATH, '//button[@class=" css-47sehv"]').click()
+    except:
+        print("No cookies to agree too. Passing...")
+    
+    # await asyncio.sleep(DRIVER_SLEEP)
+    # DRIVER_SLEEP = random.randint(DRIVER_MIN_SLEEP, DRIVER_MAX_SLEEP)
+
+    driver.find_element(By.XPATH, '//div[@class="server-body"]').click()
+
+    await asyncio.sleep(DRIVER_SLEEP)
+    DRIVER_SLEEP = random.randint(DRIVER_MIN_SLEEP, DRIVER_MAX_SLEEP)
+
+    if(driver.find_element(By.XPATH, '//span[@class="statuslabel-label"]').text == "Offline"):
+        await ctx.send("The server is offline")
+
+    elif(driver.find_element(By.XPATH, '//span[@class="statuslabel-label"]').text == "Online"):
+        await ctx.send("The server is online")
+    
+    driver.close()
 
 # Bot Event - when the user sends "Hello", the bot sends back "Hello there user!", where "user" is the user's name
 @bot.event
