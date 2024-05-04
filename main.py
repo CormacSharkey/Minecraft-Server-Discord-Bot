@@ -291,8 +291,8 @@ async def status(ctx):
     #Find the username input box
     driver.find_element(By.XPATH, '//input[@class="username"]').send_keys(ATERNOS_USERNAME)
 
-    await asyncio.sleep(DRIVER_SLEEP)
-    DRIVER_SLEEP = random.randint(DRIVER_MIN_SLEEP, DRIVER_MAX_SLEEP)
+    # await asyncio.sleep(DRIVER_SLEEP)
+    # DRIVER_SLEEP = random.randint(DRIVER_MIN_SLEEP, DRIVER_MAX_SLEEP)
 
     driver.find_element(By.XPATH, '//input[@class="password"]').send_keys(ATERNOS_PASSWORD)
 
@@ -309,8 +309,8 @@ async def status(ctx):
     except:
         print("No cookies to agree too. Passing...")
     
-    await asyncio.sleep(DRIVER_SLEEP)
-    DRIVER_SLEEP = random.randint(DRIVER_MIN_SLEEP, DRIVER_MAX_SLEEP)
+    # await asyncio.sleep(DRIVER_SLEEP)
+    # DRIVER_SLEEP = random.randint(DRIVER_MIN_SLEEP, DRIVER_MAX_SLEEP)
 
     driver.find_element(By.XPATH, '//div[@class="server-body"]').click()
 
