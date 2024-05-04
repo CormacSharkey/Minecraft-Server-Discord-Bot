@@ -280,34 +280,44 @@ async def start(ctx):
 @bot.command(name="status")
 async def status(ctx):
     global DRIVER_SLEEP, DRIVER_MAX_SLEEP, DRIVER_MIN_SLEEP
-    driver = uc.Chrome(headless=False,use_subprocess=False)
+    chrome_opt = uc.ChromeOptions()
+    chrome_opt.add_argument("--password-store=basic")
+    prefs = {"credentials_enable_service": False,"profile.password_manager_enabled": False}
+    chrome_opt.add_experimental_option("prefs", prefs)
+    driver = uc.Chrome(chrome_options=chrome_opt,headless=False,use_subprocess=True)
     driver.get('https://aternos.org/go/')
     
     #Sleep to prevent bot detection
-    asyncio.sleep(DRIVER_SLEEP)
+    await asyncio.sleep(DRIVER_SLEEP)
     DRIVER_SLEEP = random.randint(DRIVER_MIN_SLEEP, DRIVER_MAX_SLEEP)
     
     #Find the username input box
     driver.find_element(By.XPATH, '//input[@class="username"]').send_keys(ATERNOS_USERNAME)
 
-    asyncio.sleep(DRIVER_SLEEP)
+    await asyncio.sleep(DRIVER_SLEEP)
     DRIVER_SLEEP = random.randint(DRIVER_MIN_SLEEP, DRIVER_MAX_SLEEP)
 
     driver.find_element(By.XPATH, '//input[@class="password"]').send_keys(ATERNOS_PASSWORD)
 
+    await asyncio.sleep(DRIVER_SLEEP)
+    DRIVER_SLEEP = random.randint(DRIVER_MIN_SLEEP, DRIVER_MAX_SLEEP)
+
     driver.find_element(By.XPATH, '//button[@title="Login"]').click()
+
+    await asyncio.sleep(DRIVER_SLEEP)
+    DRIVER_SLEEP = random.randint(DRIVER_MIN_SLEEP, DRIVER_MAX_SLEEP)
     
     try:
         driver.find_element(By.XPATH, '//button[@class=" css-47sehv"]').click()
     except:
         print("No cookies to agree too. Passing...")
     
-    asyncio.sleep(DRIVER_SLEEP)
+    await asyncio.sleep(DRIVER_SLEEP)
     DRIVER_SLEEP = random.randint(DRIVER_MIN_SLEEP, DRIVER_MAX_SLEEP)
 
     driver.find_element(By.XPATH, '//div[@class="server-body"]').click()
 
-    asyncio.sleep(DRIVER_SLEEP)
+    await asyncio.sleep(DRIVER_SLEEP)
     DRIVER_SLEEP = random.randint(DRIVER_MIN_SLEEP, DRIVER_MAX_SLEEP)
 
     if(driver.find_element(By.XPATH, '//span[@class="statuslabel-label"]').text == "Offline"):
@@ -315,6 +325,8 @@ async def status(ctx):
 
     elif(driver.find_element(By.XPATH, '//span[@class="statuslabel-label"]').text == "Online"):
         await ctx.send("The server is online")
+    
+    driver.close()
 
 # Bot Event - when the user sends "Hello", the bot sends back "Hello there user!", where "user" is the user's name
 @bot.event
