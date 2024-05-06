@@ -339,4 +339,4 @@ async def status(ctx, arg):
     driver.close()
 
 async def helloworld(ctx, arg):
-    await ctx.send("Hello World Reloaded")
+    await ctx.send("Hello World after Reloading")

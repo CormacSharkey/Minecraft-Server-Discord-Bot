@@ -23,6 +23,7 @@ bot = commands.Bot(command_prefix='?', intents=intents)
 
 # Dynamically reload the botCommands library.
 # Error checking not needed since reload will crash if the library is not found.
+@bot.command(name="reload")
 async def reload(ctx):
     print("INFO: Received intent to reload")
     importlib.reload(bc)
@@ -31,6 +32,9 @@ async def reload(ctx):
 # Command runs on every message and checks to see if it is a command message (i.e. any message starting with '!') 
 @bot.event
 async def on_message(message):
+    # Process any potential commands first before going to the dispatcher
+    await bot.process_commands(message)
+    
     #Grab the context to pass to commands
     ctx = await bot.get_context(message)
 
@@ -41,11 +45,6 @@ async def on_message(message):
         # Split at the first whitespace character since every thing after that will be some type of argument.
         # Commands in botCommands should deal with splitting the argument string further if it expects multiple args.
         messageArguments = message.content.split(maxsplit=1)
-
-        if(messageArguments[0][1:] == 'reload'):
-            await reload(ctx)
-            return
-
 
         # Dynamically find the function based on the command provided. If command not found, return None.
         command = getattr(bc, messageArguments[0][1:], None)
