@@ -146,7 +146,6 @@ async def disconnect(ctx, arg):
 #     else:
 #         await ctx.send(str(ctx.author.name) + "is not in a channel.")
 
-# Bot Command - when user sends "!play [arg]", the bot downloads the audio of the provided arg Youtube video, joins voice chat and plays it
 # @bot.command(name="play")
 async def play(ctx, arg):
 
@@ -338,3 +337,6 @@ async def status(ctx, arg):
         await ctx.send("The server is online")
     
     driver.close()
+
+async def helloworld(ctx, arg):
+    await ctx.send("Hello World Reloaded")
