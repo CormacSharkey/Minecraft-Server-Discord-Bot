@@ -1,6 +1,12 @@
 import os
 import time
+
 import asyncio
+import sys
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+from trivia import trivia as tv
+
 import undetected_chromedriver as uc
 import random
 
@@ -158,7 +164,8 @@ async def play(ctx, arg):
         else:
             executable = "C:/FFMPEG/bin/ffmpeg.exe"
         
-        ffmpeg_options = {'options': '-vn'}
+        # ffmpeg_options = {'options': '-vn'}
+        ffmpeg_options = { 'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
         
         try:
             while len(QUEUE) > 0:
@@ -338,5 +345,9 @@ async def status(ctx, arg):
     
     driver.close()
 
-async def helloworld(ctx, arg):
-    await ctx.send("Hello World after Reloading")
+# TODO: Test and fix streaming audio issue
+
+async def trivia(ctx, arg):
+    questions = await tv.question(amount=1, category=2, difficulty='easy', quizType='multiple')
+
+    await ctx.send(questions)
