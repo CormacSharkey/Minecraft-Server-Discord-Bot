@@ -36,9 +36,10 @@ RESULTS_LINKS = []
 
 # Add uBlock Origin to the Chrome Driver
 chop = webdriver.ChromeOptions()
-chop.add_extension('CJPALHDLNBPAFIAMEJDNHCPHJBKEIAGM_1_57_0_0.crx')
-chop.add_argument('--headless=new')
-chop.add_argument('--start-maximized')
+# chop.add_extension('CJPALHDLNBPAFIAMEJDNHCPHJBKEIAGM_1_57_0_0.crx')
+chop.add_argument('--disable-search-engine-choice-screen')
+# chop.add_argument('--headless=new')
+# chop.add_argument('--start-maximized')
 driver = webdriver.Chrome(options = chop)
 
 # load_dotenv()
@@ -327,7 +328,7 @@ async def status(ctx, arg):
     try:
         driver.find_element(By.XPATH, '//button[@class=" css-47sehv"]').click()
     except:
-        print("No cookies to agree too. Passing...")
+        print("No cookies to agree to. Passing...")
     
     # await asyncio.sleep(DRIVER_SLEEP)
     # DRIVER_SLEEP = random.randint(DRIVER_MIN_SLEEP, DRIVER_MAX_SLEEP)
@@ -348,6 +349,7 @@ async def status(ctx, arg):
 # TODO: Test and fix streaming audio issue
 
 async def trivia(ctx, arg):
-    questions = await tv.question(amount=1, category=2, difficulty='easy', quizType='multiple')
+    triviaParams = arg.split(maxsplit=1)
+    questions = await tv.question(amount=1, category=0, difficulty=triviaParams[0], quizType=triviaParams[1])
 
-    await ctx.send(questions)
+    await ctx.send(questions[0].get("question"))
