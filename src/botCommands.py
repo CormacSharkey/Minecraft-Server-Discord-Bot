@@ -1,21 +1,17 @@
 import os
-import time
 import asyncio
 import undetected_chromedriver as uc
 import random
 
 import yt_dlp
-# from youtube_search import YoutubeSearch
 from youtubesearchpython import VideosSearch
 
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
 
 import discord
 from discord.ext import commands
-from dotenv import load_dotenv
 
 global QUEUE, RESULTS_LINKS, DRIVER_SLEEP, DRIVER_MIN_SLEEP, DRIVER_MAX_SLEEP
 
@@ -30,58 +26,38 @@ DRIVER_MAX_SLEEP = 3
 QUEUE = []
 RESULTS_LINKS = []
 
-# Add uBlock Origin to the Chrome Driver
+
 chop = webdriver.FirefoxOptions()
-# chop.add_extension('CJPALHDLNBPAFIAMEJDNHCPHJBKEIAGM_1_57_0_0.crx')
-chop.add_argument('-headless')
-# chop.add_argument('--start-maximized')
+chop.add_argument('--headless')
+chop.add_argument("--width=1280")
+chop.add_argument("--height=1450")
 driver = webdriver.Firefox(options = chop)
-driver.install_addon('uBlock0@raymondhill.net.xpi')
+driver.install_addon('Resources/uBlock0@raymondhill.net.xpi') # Add uBlock Origin
+
+# Add uBlock Origin to the Chrome Driver
+# chop.add_extension('CJPALHDLNBPAFIAMEJDNHCPHJBKEIAGM_1_57_0_0.crx')
+# chop.add_argument('--start-maximized')
 
 # load_dotenv()
 ATERNOS_USERNAME = os.getenv('ATERNOS_USERNAME')
 ATERNOS_PASSWORD = os.getenv('ATERNOS_PASSWORD')
 
-
+#! Working
 # Bot Command - when user sends "!marco", bot responds with "polo"
-# @bot.command(name='marco')
 async def marco(ctx, arg):
     await ctx.send("polo")
 
+#! Working
 # Bot Command - when user sends "!search [arg]", the bot searches a MC wiki for the arg value as a recipe
 # Returns an image of the recipe(s) or an error message for spelling
-# @bot.command(name='search')
 async def search(ctx, arg):
     # Open the Minecraft Crafting Guide website
     driver.get(f'https://www.minecraftcraftingguide.net/search/?s={arg}')
     # Wait for 0.1 seconds to load it
     driver.implicitly_wait(0.1)
-    # Dealing with a cookie consent popup (not needed with uBlock Origin)
-    # popUp = driver.find_element(By.XPATH, "/html/body/div[2]/div[2]/div[1]/div[2]/div[2]/button[1]").click()
-
-    # # Find the search box
-    # searchBox = driver.find_element(By.XPATH, "/html/body/div/div/header/div/form/input[1]")
-    # # Send the search query
-    # searchBox.send_keys(arg)
-    # # Find the search button and click it
-    # searchButton = driver.find_element(By.XPATH, "/html/body/div/div/header/div/form/input[2]")
-    # # Click the search button
-    # searchButton.click()
-
-    # Change the webpage height and width to max
-    # height = driver.execute_script('return document.documentElement.scrollHeight')
-    # width  = driver.execute_script('return document.documentElement.scrollWidth')
-    # driver.set_window_size(width, height)
-    time.sleep(0.1)
 
     # Exception Handling - to catch when the search argument isn't valid or no search results
     try:
-        # # Find the search results
-        # searchResults = driver.find_element(By.XPATH, "/html/body/div/div/div/div/div/div[1]/div[2]/table/tbody")
-
-        # # Save a screenshot of the search results
-        # searchResults.screenshot("Searches/image.png")
-    
         # Save a screenshot of the website
         driver.save_screenshot("Searches/image.png")
     
@@ -91,15 +67,12 @@ async def search(ctx, arg):
             f.close()
             # os.remove("Searches/image.png")
             await ctx.send(file=picture)
-    
-        # await ctx.send("Website open!")
     except:
         await ctx.send("Womp womp spell better")
 
-
+#! Working
 # Bot Command - when user sends "!connect", the bot will connect to the same voice chat as the user
 # Returns an error message if the user is not in a voice chat
-# @bot.command(name="connect")
 async def connect(ctx, arg):
     # Gets voice channel of message author
     voice_channel = ctx.author.voice.channel
@@ -109,11 +82,13 @@ async def connect(ctx, arg):
     else:
         await ctx.send(str(ctx.author.name) + "is not in a channel.")
 
+#! Working
 # Bot Command - when user sends "!disconnect", the bot will disconnect from its voice channel
 # @bot.command(name="disconnect")
 async def disconnect(ctx, arg):
     # Disconnect the bot from the voice channel its in
     await ctx.voice_client.disconnect()
+
 
 # @bot.command(name="play")
 async def play(ctx, arg):
@@ -121,7 +96,7 @@ async def play(ctx, arg):
     # Gets voice channel of message author
     voice_channel = ctx.author.voice.channel
     if (voice_channel):
-        # Checking to see if the OS is Linux or Windows (P.S WSL is better ;) )
+        # Checking to see if the OS is Linux or Windows (P.S Linux is better ;) )
         if os.name == 'posix':
             executable = "/usr/bin/ffmpeg"
         else:
@@ -135,39 +110,37 @@ async def play(ctx, arg):
                 ctx.guild.voice_client.play(discord.FFmpegPCMAudio(executable=executable, source=source, **ffmpeg_options))
                 while (ctx.voice_client.is_playing()):
                     await asyncio.sleep(1)
-        except:
+        except Exception as e:
+            print(e)
             await ctx.send("Womp womp why did you leave?")
 
     else:
         await ctx.send(str(ctx.author.name) + "is not in a channel.")
 
-
+#! Working
 def __yt_search(query):
-    results = VideosSearch(query, limit=MAX_RESULTS).to_dict()
-    return results
+    results = VideosSearch(query, limit=MAX_RESULTS).result()
+    return results.get("result")
 
-# bot.command(name="searchYT")
+#! Working
 async def searchYT(ctx, arg):
     global RESULTS_LINKS
     RESULTS_LINKS.clear()
     results = __yt_search(arg)
     
     for i in range(0, len(results)):
-        RESULTS_LINKS.append([results[i].get("title"), "https://www.youtube.com" + results[i].get("url_suffix")])
+        RESULTS_LINKS.append([results[i].get("title"), results[i].get("link")])
     
     for i in range(0, len(results)):
-        await ctx.send(results[i].get("title") + "\t" + "https://www.youtube.com" + results[i].get("url_suffix"))
+        await ctx.send(f"{RESULTS_LINKS[i][0]}\n{RESULTS_LINKS[i][1]}")
 
-
-# @bot.command(name="queue")
+#! Working
 async def queue(ctx, arg):
-    #TODO: Use REGEX to santize input before we append
-
     with yt_dlp.YoutubeDL({'format':'bestaudio'}) as downloader:
         songinfo = downloader.extract_info(RESULTS_LINKS[int(arg)-1][1], download=False)
     QUEUE.append(songinfo["url"])
 
-# @bot.command(name="dequeue")
+#! Working
 async def dequeue(ctx, arg):
     if not len(QUEUE):
         await ctx.send("There is nothing to dequeue")
@@ -176,8 +149,6 @@ async def dequeue(ctx, arg):
     if arg.isnumeric() and int(arg) >= 1 and int(arg) < len(QUEUE):
         QUEUE.pop(int(arg) - 1)
 
-
-# @bot.command(name="start")
 async def start(ctx, arg):
     global DRIVER_SLEEP, DRIVER_MAX_SLEEP, DRIVER_MIN_SLEEP
     await ctx.send("Starting the server...")
@@ -306,6 +277,3 @@ async def status(ctx, arg):
         await ctx.send("The server is online")
     
     driver.close()
-
-async def helloworld(ctx, arg):
-    await ctx.send("Hello World after Reloading")
