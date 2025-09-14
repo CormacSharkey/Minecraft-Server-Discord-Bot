@@ -1,2 +1,3 @@
 # Environmental Variables
 .env
+**/__pycache__/
