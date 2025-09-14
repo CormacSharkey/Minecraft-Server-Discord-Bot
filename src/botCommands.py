@@ -13,6 +13,13 @@ from selenium.webdriver.common.by import By
 import discord
 from discord.ext import commands
 
+
+# import logging
+# logging.basicConfig(level=logging.DEBUG)
+# # then run your bot — look for websocket/voice close codes and stack traces
+
+
+
 global QUEUE, RESULTS_LINKS, DRIVER_SLEEP, DRIVER_MIN_SLEEP, DRIVER_MAX_SLEEP
 
 #Made the path relative
@@ -84,15 +91,12 @@ async def connect(ctx, arg):
 
 #! Working
 # Bot Command - when user sends "!disconnect", the bot will disconnect from its voice channel
-# @bot.command(name="disconnect")
 async def disconnect(ctx, arg):
     # Disconnect the bot from the voice channel its in
     await ctx.voice_client.disconnect()
 
-
-# @bot.command(name="play")
-async def play(ctx, arg):
-
+#! Working
+async def play(ctx):
     # Gets voice channel of message author
     voice_channel = ctx.author.voice.channel
     if (voice_channel):
@@ -108,7 +112,7 @@ async def play(ctx, arg):
             while len(QUEUE) > 0:
                 source = QUEUE.pop(0)
                 ctx.guild.voice_client.play(discord.FFmpegPCMAudio(executable=executable, source=source, **ffmpeg_options))
-                while (ctx.voice_client.is_playing()):
+                while (ctx.voice_client.is_playing() or ctx.voice_client.is_paused()):
                     await asyncio.sleep(1)
         except Exception as e:
             print(e)
@@ -116,6 +120,20 @@ async def play(ctx, arg):
 
     else:
         await ctx.send(str(ctx.author.name) + "is not in a channel.")
+
+#? Untested
+async def pause(ctx):
+    # Gets voice channel of message author
+    voice_channel = ctx.author.voice.channel
+
+    ctx.guild.voice_client.pause()
+
+#? Untested
+async def resume(ctx):
+    # Gets voice channel of message author
+    voice_channel = ctx.author.voice.channel
+
+    ctx.guild.voice_client.resume()
 
 #! Working
 def __yt_search(query):
