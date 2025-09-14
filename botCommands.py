@@ -5,7 +5,9 @@ import undetected_chromedriver as uc
 import random
 
 import yt_dlp
-from youtube_search import YoutubeSearch
+# from youtube_search import YoutubeSearch
+from youtubesearchpython import VideosSearch
+
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -29,11 +31,12 @@ QUEUE = []
 RESULTS_LINKS = []
 
 # Add uBlock Origin to the Chrome Driver
-chop = webdriver.ChromeOptions()
-chop.add_extension('CJPALHDLNBPAFIAMEJDNHCPHJBKEIAGM_1_57_0_0.crx')
-chop.add_argument('--headless=new')
-chop.add_argument('--start-maximized')
-driver = webdriver.Chrome(options = chop)
+chop = webdriver.FirefoxOptions()
+# chop.add_extension('CJPALHDLNBPAFIAMEJDNHCPHJBKEIAGM_1_57_0_0.crx')
+chop.add_argument('-headless')
+# chop.add_argument('--start-maximized')
+driver = webdriver.Firefox(options = chop)
+driver.install_addon('uBlock0@raymondhill.net.xpi')
 
 # load_dotenv()
 ATERNOS_USERNAME = os.getenv('ATERNOS_USERNAME')
@@ -50,37 +53,37 @@ async def marco(ctx, arg):
 # @bot.command(name='search')
 async def search(ctx, arg):
     # Open the Minecraft Crafting Guide website
-    driver.get('https://www.minecraftcraftingguide.net/')
+    driver.get(f'https://www.minecraftcraftingguide.net/search/?s={arg}')
     # Wait for 0.1 seconds to load it
     driver.implicitly_wait(0.1)
     # Dealing with a cookie consent popup (not needed with uBlock Origin)
     # popUp = driver.find_element(By.XPATH, "/html/body/div[2]/div[2]/div[1]/div[2]/div[2]/button[1]").click()
 
-    # Find the search box
-    searchBox = driver.find_element(By.XPATH, "/html/body/div/div/header/div/form/input[1]")
-    # Send the search query
-    searchBox.send_keys(arg)
-    # Find the search button and click it
-    searchButton = driver.find_element(By.XPATH, "/html/body/div/div/header/div/form/input[2]")
-    # Click the search button
-    searchButton.click()
+    # # Find the search box
+    # searchBox = driver.find_element(By.XPATH, "/html/body/div/div/header/div/form/input[1]")
+    # # Send the search query
+    # searchBox.send_keys(arg)
+    # # Find the search button and click it
+    # searchButton = driver.find_element(By.XPATH, "/html/body/div/div/header/div/form/input[2]")
+    # # Click the search button
+    # searchButton.click()
 
     # Change the webpage height and width to max
-    height = driver.execute_script('return document.documentElement.scrollHeight')
-    width  = driver.execute_script('return document.documentElement.scrollWidth')
-    driver.set_window_size(width, height)
+    # height = driver.execute_script('return document.documentElement.scrollHeight')
+    # width  = driver.execute_script('return document.documentElement.scrollWidth')
+    # driver.set_window_size(width, height)
     time.sleep(0.1)
 
     # Exception Handling - to catch when the search argument isn't valid or no search results
     try:
-        # Find the search results
-        searchResults = driver.find_element(By.XPATH, "/html/body/div/div/div/div/div/div[1]/div[2]/table/tbody")
+        # # Find the search results
+        # searchResults = driver.find_element(By.XPATH, "/html/body/div/div/div/div/div/div[1]/div[2]/table/tbody")
 
-        # Save a screenshot of the search results
-        searchResults.screenshot("Searches/image.png")
+        # # Save a screenshot of the search results
+        # searchResults.screenshot("Searches/image.png")
     
         # Save a screenshot of the website
-        # driver.save_screenshot("Searches/image.png")
+        driver.save_screenshot("Searches/image.png")
     
         # Open the screenshot and send it
         with open("Searches/image.png", "rb") as f:
@@ -140,7 +143,7 @@ async def play(ctx, arg):
 
 
 def __yt_search(query):
-    results = YoutubeSearch(query, max_results=MAX_RESULTS).to_dict()
+    results = VideosSearch(query, limit=MAX_RESULTS).to_dict()
     return results
 
 # bot.command(name="searchYT")
