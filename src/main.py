@@ -1,7 +1,10 @@
 import botCommands as bc
 
-import discord
-from discord.ext import commands
+# import discord
+# from discord.ext import commands
+
+import nextcord
+from nextcord.ext import commands
 from dotenv import load_dotenv
 
 import asyncio
@@ -14,7 +17,7 @@ global lastCommand
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 # Set the bot's intents
-intents = discord.Intents.default()
+intents = nextcord.Intents.default()
 intents.typing = False
 intents.presences = False
 intents.messages = True
@@ -54,7 +57,7 @@ async def on_message(message):
 async def on_voice_state_update(member, before, after):
     if (before.channel):
         if bot.user in before.channel.members and len([m for m in before.channel.members if not m.bot]) == 0:
-            channel = discord.utils.get(bot.voice_clients, channel=before.channel)
+            channel = nextcord.utils.get(bot.voice_clients, channel=before.channel)
             await channel.disconnect()
 
 

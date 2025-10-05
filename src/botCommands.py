@@ -10,8 +10,11 @@ from youtubesearchpython import VideosSearch
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 
-import discord
-from discord.ext import commands
+# import discord
+# from discord.ext import commands
+
+import nextcord
+from nextcord.ext import commands
 
 
 # import logging
@@ -70,7 +73,7 @@ async def search(ctx, arg):
     
         # Open the screenshot and send it
         with open("Searches/image.png", "rb") as f:
-            picture = discord.File(f)
+            picture = nextcord.File(f)
             f.close()
             # os.remove("Searches/image.png")
             await ctx.send(file=picture)
@@ -96,7 +99,7 @@ async def disconnect(ctx, arg):
     await ctx.voice_client.disconnect()
 
 #! Working
-async def play(ctx):
+async def play(ctx, arg):
     # Gets voice channel of message author
     voice_channel = ctx.author.voice.channel
     if (voice_channel):
@@ -111,7 +114,7 @@ async def play(ctx):
         try:
             while len(QUEUE) > 0:
                 source = QUEUE.pop(0)
-                ctx.guild.voice_client.play(discord.FFmpegPCMAudio(executable=executable, source=source, **ffmpeg_options))
+                ctx.guild.voice_client.play(nextcord.FFmpegPCMAudio(executable=executable, source=source, **ffmpeg_options))
                 while (ctx.voice_client.is_playing() or ctx.voice_client.is_paused()):
                     await asyncio.sleep(1)
         except Exception as e:
@@ -122,14 +125,14 @@ async def play(ctx):
         await ctx.send(str(ctx.author.name) + "is not in a channel.")
 
 #? Untested
-async def pause(ctx):
+async def pause(ctx, arg):
     # Gets voice channel of message author
     voice_channel = ctx.author.voice.channel
 
     ctx.guild.voice_client.pause()
 
 #? Untested
-async def resume(ctx):
+async def resume(ctx, arg):
     # Gets voice channel of message author
     voice_channel = ctx.author.voice.channel
 
@@ -157,6 +160,7 @@ async def queue(ctx, arg):
     with yt_dlp.YoutubeDL({'format':'bestaudio'}) as downloader:
         songinfo = downloader.extract_info(RESULTS_LINKS[int(arg)-1][1], download=False)
     QUEUE.append(songinfo["url"])
+    print(f"Queued {RESULTS_LINKS[int(arg)-1][0]}")
 
 #! Working
 async def dequeue(ctx, arg):
